@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    
+    <style>
+        @font-face {
+            font-family: 'Inter';
+            src: url('../fonts/Inter.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Allura';
+            src: url('../fonts/Allura.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg-color: #FAFAFC;
+            --text-main: #18181B;
+            --text-muted: #A1A1AA;
+            --border-color: #E4E4E7;
+            --ring-color: rgba(24, 24, 27, 0.08);
+            --surface-color: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #E4E4E7 1px, transparent 1px);
+            background-size: 24px 24px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 560px;
+            text-align: center;
+            animation: floatUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(24px) scale(0.98);
+        }
+
+        @keyframes floatUp {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* The Gold Allura Branding using local fonts */
+        .brand {
+            font-size: 72px;
+            font-family: 'Allura', cursive, Georgia, serif;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 32px;
+            user-select: none;
+            background: linear-gradient(135deg, #D4AF37 0%, #FFF2CD 50%, #AA771C 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.15));
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 16px 24px 16px 52px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text-main);
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .search-box input:focus {
+            border-color: #D4D4D8;
+            box-shadow: 0 0 0 4px var(--ring-color), 0 8px 30px rgba(0, 0, 0, 0.06);
+            transform: translateY(-2px);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .search-box:focus-within .search-icon {
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <div class="brand">Aurum Browser</div>
+        
+        <form id="search-form" class="search-box">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="search-input" placeholder="Search the web or enter a URL..." autocomplete="off" autofocus spellcheck="false">
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            window.location.href = `http://aurum.internal/navigate?q=` + encodeURIComponent(query);
+        });
+    </script>
+</body>
+</html>

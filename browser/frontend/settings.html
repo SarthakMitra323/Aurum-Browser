@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    
+    <style>
+        :root {
+            --bg-color: #FAFAFC;
+            --text-main: #18181B;
+            --text-muted: #A1A1AA;
+            --border-color: #E4E4E7;
+            --surface-color: #FFFFFF;
+            --accent-color: #18181B;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .settings-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 64px 24px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 48px;
+            letter-spacing: -0.02em;
+        }
+
+        .setting-group {
+            margin-bottom: 40px;
+        }
+
+        .setting-group h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card:hover {
+            border-color: #D4D4D8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transform: translateY(-2px);
+        }
+
+        .card.active {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="settings-container">
+        <h1>Settings</h1>
+        
+        <div class="setting-group">
+            <h2>Default Search Engine</h2>
+            <div class="options-grid">
+                
+                <div class="card" id="card-duckduckgo" onclick="setEngine('duckduckgo')">
+                    <div class="card-title">DuckDuckGo</div>
+                    <div class="card-desc">Privacy focused. Doesn't track you.</div>
+                </div>
+
+                <div class="card" id="card-google" onclick="setEngine('google')">
+                    <div class="card-title">Google</div>
+                    <div class="card-desc">The standard, comprehensive web search.</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const currentEngine = params.get('engine') || 'duckduckgo';
+        
+        // Safety check added to ensure invalid query params don't break JS execution
+        const activeCard = document.getElementById(`card-${currentEngine}`);
+        if (activeCard) {
+            activeCard.classList.add('active');
+        }
+
+        function setEngine(engine) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            const targetCard = document.getElementById(`card-${engine}`);
+            if (targetCard) {
+                targetCard.classList.add('active');
+                window.location.href = `http://aurum.internal/set-search?engine=${engine}`;
+            }
+        }
+    </script>
+</body>
+</html>

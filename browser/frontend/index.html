@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurum Sidebar</title>
+    
+    <style>
+        /* Load local font */
+        @font-face {
+            font-family: 'Inter';
+            src: url('../fonts/Inter.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg-sidebar: #f7f7f8;
+            --bg-sidebar-hover: #eaeaea;
+            --bg-active-tab: #ffffff;
+            --text-main: #202024;
+            --text-muted: #6b6b70;
+            --border-color: #e3e3e6;
+            --accent: #000000;
+            --guest-accent: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--bg-sidebar);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        /* Top Bar & Clock */
+        .top-bar {
+            padding: 16px 12px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .header-brand {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 4px;
+            justify-content: space-between;
+        }
+
+        button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { background: var(--bg-sidebar-hover); color: var(--text-main); }
+        button svg { width: 16px; height: 16px; }
+
+        .address-bar {
+            display: flex;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-bar:focus-within {
+            border-color: var(--text-muted);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+
+        .address-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 13px;
+            color: var(--text-main);
+            background: transparent;
+        }
+
+        /* Tab List */
+        .tab-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .tab:hover { background: var(--bg-sidebar-hover); }
+        .tab.active {
+            background: var(--bg-active-tab);
+            border-color: var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            font-weight: 500;
+        }
+
+        .tab-title {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 8px;
+        }
+
+        .tab-favicon {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            flex: 0 0 16px;
+        }
+
+        .tab-close { opacity: 0; padding: 4px; border-radius: 4px; }
+        .tab:hover .tab-close { opacity: 1; }
+        .tab-close:hover { color: #d73a49; background: #ffe6e6; }
+        .tab.dragging { opacity: 0.5; }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            padding: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .guest-badge {
+            background: var(--guest-accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 11px;
+            display: none; /* Hidden by default */
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d0d0d5; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b8b8bd; }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="header-brand" id="utc-time"></div>
+        
+        <div class="nav-controls">
+            <button id="btn-back" title="Back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button id="btn-forward" title="Forward">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+            <button id="btn-reload" title="Reload">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <button id="btn-new-tab" title="New Tab">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            </button>
+        </div>
+        <div class="address-bar">
+            <input type="text" 
+                   id="address-input"
+                   placeholder="Search or enter URL" 
+                   autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <div class="tab-list" id="tab-list"></div>
+
+    <div class="bottom-bar">
+        <button id="btn-guest" title="Guest Mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </button>
+        <span id="guest-badge" class="guest-badge">Guest</span>
+        <button id="btn-settings" title="Settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+    </div>
+
+    <script>
+        // Native DOM Implementation (Replaces Alpine.js)
+        let state = { tabs: [], active_tab_id: null, is_guest_mode: false };
+        let bridge = null;
+        let draggedIndex = null;
+
+        const ui = {
+            utcTime: document.getElementById('utc-time'),
+            addressInput: document.getElementById('address-input'),
+            tabList: document.getElementById('tab-list'),
+            guestBadge: document.getElementById('guest-badge')
+        };
+
+        function updateClock() {
+            ui.utcTime.textContent = new Date().toISOString().substring(11, 16) + ' UTC';
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function renderTabs() {
+            ui.tabList.innerHTML = '';
+            state.tabs.forEach((tab, index) => {
+                const el = document.createElement('div');
+                el.className = `tab ${state.active_tab_id === tab.id ? 'active' : ''}`;
+                el.draggable = true;
+                
+                el.addEventListener('click', () => bridge && bridge.switch_tab(tab.id));
+                
+                el.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                el.addEventListener('dragover', (e) => e.preventDefault());
+                el.addEventListener('drop', () => {
+                    if (bridge && draggedIndex !== null && draggedIndex !== index) {
+                        bridge.reorder_tabs(draggedIndex, index);
+                    }
+                    draggedIndex = null;
+                });
+
+                const titleSpan = document.createElement('span');
+                const favicon = document.createElement('img');
+                favicon.className = 'tab-favicon';
+                favicon.alt = '';
+                favicon.src = tab.favicon || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+                el.appendChild(favicon);
+                titleSpan.className = 'tab-title';
+                titleSpan.textContent = tab.title || 'New Tab';
+                el.appendChild(titleSpan);
+
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'tab-close';
+                closeBtn.title = 'Close tab';
+                closeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (bridge) bridge.close_tab(tab.id);
+                });
+                el.appendChild(closeBtn);
+
+                ui.tabList.appendChild(el);
+            });
+            ui.guestBadge.style.display = state.is_guest_mode ? 'block' : 'none';
+        }
+
+        ui.addressInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && bridge && ui.addressInput.value.trim() !== '') {
+                bridge.navigate(ui.addressInput.value.trim());
+            }
+        });
+
+        // Event Listeners for controls
+        document.getElementById('btn-back').addEventListener('click', () => bridge?.go_back());
+        document.getElementById('btn-forward').addEventListener('click', () => bridge?.go_forward());
+        document.getElementById('btn-reload').addEventListener('click', () => bridge?.reload());
+        document.getElementById('btn-new-tab').addEventListener('click', () => bridge?.new_tab());
+        document.getElementById('btn-guest').addEventListener('click', () => bridge?.toggle_guest_mode());
+        document.getElementById('btn-settings').addEventListener('click', () => bridge?.open_settings());
+
+        function connectToQt() {
+            if (typeof qt !== 'undefined' && qt.webChannelTransport) {
+                new QWebChannel(qt.webChannelTransport, (channel) => {
+                    bridge = channel.objects.bridge;
+                    
+                    bridge.state_changed.connect((stateJson) => {
+                        state = JSON.parse(stateJson);
+                        renderTabs();
+                    });
+
+                    bridge.tab_url_changed.connect((id, url) => {
+                        if (state.active_tab_id === id && document.activeElement !== ui.addressInput) {
+                            ui.addressInput.value = url;
+                        }
+                    });
+
+                    bridge.tab_title_changed.connect((id, title) => {
+                        const tab = state.tabs.find(t => t.id === id);
+                        if (tab) {
+                            tab.title = title;
+                            renderTabs();
+                        }
+                    });
+
+                    bridge.tab_favicon_changed.connect((id, favicon) => {
+                        const tab = state.tabs.find(t => t.id === id);
+                        if (tab) { tab.favicon = favicon; renderTabs(); }
+                    });
+
+                    bridge.active_tab_changed.connect((id, url) => {
+                        state.active_tab_id = id;
+                        if (document.activeElement !== ui.addressInput) {
+                            ui.addressInput.value = url;
+                        }
+                        renderTabs();
+                    });
+
+                    bridge.focus_address.connect(() => {
+                        ui.addressInput.focus();
+                        ui.addressInput.select();
+                    });
+
+                    bridge.request_state();
+                });
+            } else {
+                setTimeout(connectToQt, 50);
+            }
+        }
+        connectToQt();
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+[project]
+name = "aurum-python-browser"
+version = "0.1.0"
+description = "A lightweight, secure, premium desktop web browser."
+requires-python = ">=3.10"
+dependencies = [
+"PySide6>=6.6.0",
+"pyinstaller>=6.0.0",
+"Pillow>=10.0.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
