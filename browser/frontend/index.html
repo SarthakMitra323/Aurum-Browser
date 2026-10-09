@@ -224,6 +224,7 @@
         let state = { tabs: [], active_tab_id: null, is_guest_mode: false };
         let bridge = null;
         let draggedIndex = null;
+        let renderQueued = false;
 
         const ui = {
             utcTime: document.getElementById('utc-time'),
@@ -239,6 +240,7 @@
         updateClock();
 
         function renderTabs() {
+            const previousScrollTop = ui.tabList.scrollTop;
             ui.tabList.innerHTML = '';
             state.tabs.forEach((tab, index) => {
                 const el = document.createElement('div');
@@ -282,6 +284,16 @@
                 ui.tabList.appendChild(el);
             });
             ui.guestBadge.style.display = state.is_guest_mode ? 'block' : 'none';
+            ui.tabList.scrollTop = previousScrollTop;
+        }
+
+        function scheduleRender() {
+            if (renderQueued) return;
+            renderQueued = true;
+            requestAnimationFrame(() => {
+                renderQueued = false;
+                renderTabs();
+            });
         }
 
         ui.addressInput.addEventListener('keydown', (e) => {
@@ -305,7 +317,7 @@
                     
                     bridge.state_changed.connect((stateJson) => {
                         state = JSON.parse(stateJson);
-                        renderTabs();
+                        scheduleRender();
                     });
 
                     bridge.tab_url_changed.connect((id, url) => {
@@ -318,13 +330,13 @@
                         const tab = state.tabs.find(t => t.id === id);
                         if (tab) {
                             tab.title = title;
-                            renderTabs();
+                            scheduleRender();
                         }
                     });
 
                     bridge.tab_favicon_changed.connect((id, favicon) => {
                         const tab = state.tabs.find(t => t.id === id);
-                        if (tab) { tab.favicon = favicon; renderTabs(); }
+                        if (tab) { tab.favicon = favicon; scheduleRender(); }
                     });
 
                     bridge.active_tab_changed.connect((id, url) => {
@@ -332,7 +344,7 @@
                         if (document.activeElement !== ui.addressInput) {
                             ui.addressInput.value = url;
                         }
-                        renderTabs();
+                        scheduleRender();
                     });
 
                     bridge.focus_address.connect(() => {

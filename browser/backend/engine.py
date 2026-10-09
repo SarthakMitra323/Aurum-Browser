@@ -76,7 +76,7 @@ class BrowserEngine:
         settings = profile.settings()
         settings.setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
         settings.setAttribute(QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True)
-        settings.setAttribute(QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.ScrollAnimatorEnabled, False)
         
         # Enables blazing fast back/forward navigation without re-downloading resources
         settings.setAttribute(QWebEngineSettings.WebAttribute.BackForwardCacheEnabled, True)
@@ -102,8 +102,6 @@ class BrowserEngine:
         view.titleChanged.connect(lambda t: self.update_tab_title(tab.tab_id, t))
         view.urlChanged.connect(lambda u: self.update_tab_url(tab.tab_id, u))
         view.iconChanged.connect(lambda icon: self.update_tab_icon(tab.tab_id, icon))
-        view.loadStarted.connect(self.bridge.emit_state)
-        view.loadFinished.connect(lambda ok: self.bridge.emit_state())
         view.renderProcessTerminated.connect(
             lambda status, code: print(f"[WebEngine Renderer] {status.name} ({code})")
         )
@@ -243,6 +241,8 @@ class BrowserEngine:
         if tab:
             display_title = title if "home.html" not in title else "New Tab"
             display_title = "Settings" if "settings.html" in tab.url else display_title
+            if tab.title == display_title:
+                return
             tab.title = display_title
             self.bridge.tab_title_changed.emit(tab_id, display_title)
 
@@ -250,6 +250,8 @@ class BrowserEngine:
         tab = self._get_tab(tab_id)
         if tab:
             display_url = url.toString() if "home.html" not in url.toString() and "settings.html" not in url.toString() else ""
+            if tab.url == display_url:
+                return
             tab.url = display_url
             self.bridge.tab_url_changed.emit(tab_id, display_url)
 
@@ -264,7 +266,10 @@ class BrowserEngine:
         buffer = QBuffer()
         buffer.open(QIODevice.OpenModeFlag.ReadWrite)
         image.save(buffer, "PNG")
-        tab.favicon = "data:image/png;base64," + buffer.data().toBase64().toStdString()
+        favicon = "data:image/png;base64," + buffer.data().toBase64().toStdString()
+        if tab.favicon == favicon:
+            return
+        tab.favicon = favicon
         self.bridge.tab_favicon_changed.emit(tab_id, tab.favicon)
 
     def get_active_url(self):
